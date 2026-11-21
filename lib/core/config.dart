@@ -24,8 +24,8 @@ class AppConfig {
   ///
   /// While these placeholders are untouched the app runs in DEMO MODE
   /// with built-in sample data, so you can preview everything first.
-  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
-  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  static const String supabaseUrl = 'https://twaobefblnhqriqnlocl.supabase.co';
+  static const String supabaseAnonKey = 'sb_publishable_ZZPJHI71Tef3O2SJDokrPQ_nJRiel86';
 
   static bool get isConfigured =>
       supabaseUrl.startsWith('https://') &&

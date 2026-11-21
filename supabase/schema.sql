@@ -303,6 +303,15 @@ grant execute on function public.validate_coupon(text) to anon;
 grant execute on function public.create_order_with_items(text, text, text, text, text, jsonb, text) to anon;
 grant execute on function public.generate_coupon(numeric) to authenticated;
 
+-- Table-level privileges. Postgres does not grant these automatically;
+-- without them even allowed roles get "permission denied".
+grant select on public.products, public.shipping_rates to anon, authenticated;
+grant insert, update, delete on public.products to authenticated;
+grant insert, update, delete on public.shipping_rates to authenticated;
+grant select, insert, update, delete on public.coupons to authenticated;
+grant select, update on public.orders to authenticated;
+grant select on public.order_items to authenticated;
+
 -- ── Storage bucket for product images ──────────────────────────
 
 insert into storage.buckets (id, name, public)
