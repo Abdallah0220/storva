@@ -396,11 +396,22 @@ class _Footer extends StatelessWidget {
         border: Border(top: BorderSide(color: AppTheme.border)),
       ),
       child: Center(
-        child: Text(
-          AppConfig.storeName == 'Storva'
-              ? 'Powered by Storva'
-              : '${AppConfig.storeName} - powered by Storva',
-          style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+        child: Column(
+          children: [
+            Text(
+              AppConfig.storeName == 'Storva'
+                  ? 'Powered by Storva'
+                  : '${AppConfig.storeName} - powered by Storva',
+              style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+            ),
+            if (AppConfig.showDemoCatalogNotice) ...[
+              const SizedBox(height: 6),
+              const Text(
+                'Demo catalog - sample products, prices and shipping rates',
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+              ),
+            ],
+          ],
         ),
       ),
     );

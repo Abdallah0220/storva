@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/anim.dart';
+import '../../core/config.dart';
 import '../../core/format.dart';
 import '../../core/responsive.dart';
 import '../../core/theme.dart';
@@ -328,6 +329,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
           const Divider(height: 24),
           _row('Total', fmtMoney(total), bold: true),
           const SizedBox(height: 18),
+          if (AppConfig.showDemoCatalogNotice)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 10),
+              child: Text(
+                'Demo catalog - orders are placed against sample products, prices and shipping rates.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+              ),
+            ),
           SizedBox(
             width: double.infinity,
             height: 50,

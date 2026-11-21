@@ -217,6 +217,23 @@ begin
       + v_product.price * greatest((v_item->>'quantity')::int, 1);
   end loop;
 
+  -- Basic anti-abuse throttle (free, no external services): the same
+  -- phone number can place at most one order per 60 seconds and 10
+  -- orders per 24 hours. Rotating numbers still bypasses this — it
+  -- raises the cost of scripted fake orders, it is not a captcha.
+  if exists (
+    select 1 from public.orders
+    where phone = p_phone and created_at > now() - interval '60 seconds'
+  ) then
+    raise exception 'Please wait a moment before placing another order.';
+  end if;
+  if (
+    select count(*) from public.orders
+    where phone = p_phone and created_at > now() - interval '24 hours'
+  ) >= 10 then
+    raise exception 'Order limit reached for this phone number. Please contact the store.';
+  end if;
+
   -- Shipping from the region's active rate.
   select coalesce(r.shipping_cost, 0) into v_shipping
   from public.shipping_rates r
@@ -366,9 +383,9 @@ on conflict (code) do nothing;
 --    an account on your project.
 --
 -- Honest limitations, by design:
---  - The checkout RPC has no rate limiting or captcha, so scripted
---    fake orders are possible. For a real launch consider Supabase
---    Edge Function + captcha, or dashboard rate limits.
+--  - The checkout RPC has only a basic per-phone throttle (1 order/min,
+--    10/day). Scripted orders with rotating numbers are still possible.
+--    For a real launch consider Supabase Edge Function + captcha.
 --  - Admin login is email/password only; enable MFA in the Supabase
 --    dashboard (Authentication → Sign In / Up → MFA) if you want it.
 --  - Supabase free projects PAUSE after 1 week of inactivity and a

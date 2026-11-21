@@ -32,6 +32,11 @@ class AppConfig {
       !supabaseUrl.contains('YOUR_') &&
       !supabaseAnonKey.contains('YOUR_');
 
+  /// Shows a "demo catalog" notice on the storefront and checkout while
+  /// the sample products, prices and shipping rates are in place. Set to
+  /// false once you replace them with your real catalog and pricing.
+  static const bool showDemoCatalogNotice = true;
+
   /// Demo mode = no backend required, sample data in memory.
   static bool get demoMode => !isConfigured;
 }
