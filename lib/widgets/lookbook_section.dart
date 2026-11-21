@@ -54,10 +54,7 @@ class _LookbookSectionState extends State<LookbookSection> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
-                child: Text(
-                  '${look.title}.',
-                  style: AppTheme.displayThin,
-                ),
+                child: Text('${look.title}.', style: AppTheme.displayThin),
               ),
               if (looks.length > 1)
                 Row(
@@ -101,16 +98,14 @@ class _LookbookSectionState extends State<LookbookSection> {
                 look: look,
                 resolved: resolved,
                 selected: _selected,
-                onSelect: (n) => setState(
-                  () => _selected = _selected == n ? null : n,
-                ),
+                onSelect: (n) =>
+                    setState(() => _selected = _selected == n ? null : n),
               );
               final list = _LookList(
                 resolved: resolved,
                 selected: _selected,
-                onSelect: (n) => setState(
-                  () => _selected = _selected == n ? null : n,
-                ),
+                onSelect: (n) =>
+                    setState(() => _selected = _selected == n ? null : n),
               );
               if (wide) {
                 return Row(
@@ -122,28 +117,37 @@ class _LookbookSectionState extends State<LookbookSection> {
                   ],
                 );
               }
-              return Column(children: [image, const SizedBox(height: 20), list]);
+              return Column(
+                children: [image, const SizedBox(height: 20), list],
+              );
             },
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                bagCount == 0
-                    ? 'Nothing from this look in your bag yet'
-                    : '$bagCount of ${resolved.length} pieces in your bag',
-                style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
-              ),
-              Text(
-                'TOTAL  ${fmtMoney(inBag)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                  letterSpacing: 0.6,
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              runSpacing: 8,
+              children: [
+                Text(
+                  bagCount == 0
+                      ? 'Nothing from this look in your bag yet'
+                      : '$bagCount of ${resolved.length} pieces in your bag',
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 13,
+                  ),
                 ),
-              ),
-            ],
+                Text(
+                  'TOTAL  ${fmtMoney(inBag)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

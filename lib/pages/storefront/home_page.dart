@@ -47,7 +47,8 @@ class _HomePageState extends State<HomePage> {
     _future = _load();
   }
 
-  Future<List<Product>> _load() => context.read<StoreApi>().fetchActiveProducts();
+  Future<List<Product>> _load() =>
+      context.read<StoreApi>().fetchActiveProducts();
 
   Future<void> _refresh() async {
     setState(() => _future = _load());
@@ -61,9 +62,7 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            _Header(
-              onSearch: (q) => setState(() => _query = q),
-            ),
+            _Header(onSearch: (q) => setState(() => _query = q)),
             Expanded(
               child: FutureBuilder<List<Product>>(
                 future: _future,
@@ -97,7 +96,8 @@ class _HomePageState extends State<HomePage> {
                     final matchesCategory =
                         _category == null || p.category == _category;
                     final q = _query.trim().toLowerCase();
-                    final matchesQuery = q.isEmpty ||
+                    final matchesQuery =
+                        q.isEmpty ||
                         p.name.toLowerCase().contains(q) ||
                         p.category.toLowerCase().contains(q);
                     return matchesCategory && matchesQuery;
@@ -117,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                                 const SizedBox(height: 20),
                                 NoirHero(
                                   imageUrl:
-                                      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+                                      'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
                                   onCta: _scrollToGrid,
                                 ),
                                 LookbookSection(products: products),
@@ -184,12 +184,13 @@ class _HomePageState extends State<HomePage> {
                                         const NeverScrollableScrollPhysics(),
                                     gridDelegate:
                                         SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount:
-                                          gridColumns(constraints.maxWidth),
-                                      crossAxisSpacing: 16,
-                                      mainAxisSpacing: 16,
-                                      childAspectRatio: 0.66,
-                                    ),
+                                          crossAxisCount: gridColumns(
+                                            constraints.maxWidth,
+                                          ),
+                                          crossAxisSpacing: 16,
+                                          mainAxisSpacing: 16,
+                                          childAspectRatio: 0.66,
+                                        ),
                                     itemCount: filtered.length,
                                     itemBuilder: (context, index) =>
                                         ProductCard(product: filtered[index]),
@@ -278,8 +279,10 @@ class _Header extends StatelessWidget implements PreferredSizeWidget {
                             color: AppTheme.accent,
                             shape: BoxShape.circle,
                           ),
-                          constraints:
-                              const BoxConstraints(minWidth: 18, minHeight: 18),
+                          constraints: const BoxConstraints(
+                            minWidth: 18,
+                            minHeight: 18,
+                          ),
                           child: Text(
                             '${cart.itemCount}',
                             style: const TextStyle(
@@ -347,7 +350,9 @@ class _Footer extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          '${AppConfig.storeName} - powered by Storva',
+          AppConfig.storeName == 'Storva'
+              ? 'Powered by Storva'
+              : '${AppConfig.storeName} - powered by Storva',
           style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
         ),
       ),

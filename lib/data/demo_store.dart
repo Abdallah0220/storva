@@ -18,7 +18,11 @@ class DemoStoreApi implements StoreApi {
         price: 129.99,
         quantity: 1,
       ),
-      const OrderItem(productName: 'Lumen Desk Lamp', price: 45.50, quantity: 1),
+      const OrderItem(
+        productName: 'Lumen Desk Lamp',
+        price: 45.50,
+        quantity: 1,
+      ),
     ],
     'demo-order-2': [
       const OrderItem(
@@ -194,7 +198,10 @@ class DemoStoreApi implements StoreApi {
   Future<Coupon> createCoupon(double discountPercent) async {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final rand = Random();
-    final code = List.generate(8, (_) => chars[rand.nextInt(chars.length)]).join();
+    final code = List.generate(
+      8,
+      (_) => chars[rand.nextInt(chars.length)],
+    ).join();
     final coupon = Coupon(
       id: _id(),
       code: code,
@@ -254,31 +261,34 @@ final _seedProducts = <Product>[
         'Pre-shrunk and garment washed.',
     price: 29.00,
     category: 'Apparel',
-    imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
     id: 'demo-2',
-    name: 'Moto Leather Jacket',
+    name: 'Camel Wool Blazer',
     description:
-        'Full-grain leather moto jacket with an asymmetric zip, quilted '
-        'shoulders and a satin lining.',
+        'Soft-structured camel blazer in a warm wool blend with notch '
+        'lapels, patch pockets and a relaxed fit.',
     price: 189.00,
     compareAtPrice: 240.00,
     category: 'Apparel',
-    imageUrl: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
     id: 'demo-3',
     name: 'Retro Court Sneaker',
     description:
-        'Low-top court sneaker with a cup sole, suede overlays and '
-        'cushioned insole.',
+        'Low-top court sneaker in smooth white leather with perforated '
+        'detailing and a cushioned cup sole.',
     price: 95.00,
     compareAtPrice: 120.00,
     category: 'Footwear',
-    imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -289,7 +299,8 @@ final _seedProducts = <Product>[
         'and a storm flap.',
     price: 149.00,
     category: 'Apparel',
-    imageUrl: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -301,7 +312,8 @@ final _seedProducts = <Product>[
     price: 199.00,
     compareAtPrice: 259.00,
     category: 'Accessories',
-    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -313,7 +325,8 @@ final _seedProducts = <Product>[
     price: 74.20,
     compareAtPrice: 89.00,
     category: 'Accessories',
-    imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
 ];
@@ -371,6 +384,16 @@ final _seedCoupons = <Coupon>[
 final _seedRates = <ShippingRate>[
   ShippingRate(id: 'r1', region: 'Cairo', shippingCost: 40, isActive: true),
   ShippingRate(id: 'r2', region: 'Giza', shippingCost: 45, isActive: true),
-  ShippingRate(id: 'r3', region: 'Alexandria', shippingCost: 60, isActive: true),
-  ShippingRate(id: 'r4', region: 'Other regions', shippingCost: 80, isActive: true),
+  ShippingRate(
+    id: 'r3',
+    region: 'Alexandria',
+    shippingCost: 60,
+    isActive: true,
+  ),
+  ShippingRate(
+    id: 'r4',
+    region: 'Other regions',
+    shippingCost: 80,
+    isActive: true,
+  ),
 ];

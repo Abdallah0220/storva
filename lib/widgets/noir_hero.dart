@@ -10,11 +10,7 @@ class NoirHero extends StatelessWidget {
   final String imageUrl;
   final VoidCallback onCta;
 
-  const NoirHero({
-    super.key,
-    required this.imageUrl,
-    required this.onCta,
-  });
+  const NoirHero({super.key, required this.imageUrl, required this.onCta});
 
   @override
   Widget build(BuildContext context) {
@@ -85,10 +81,7 @@ class _Glow extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          colors: [
-            color.withValues(alpha: 0.45),
-            color.withValues(alpha: 0.0),
-          ],
+          colors: [color.withValues(alpha: 0.45), color.withValues(alpha: 0.0)],
         ),
       ),
     );
@@ -153,6 +146,7 @@ class _HeroVisual extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 300,
+      width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: [

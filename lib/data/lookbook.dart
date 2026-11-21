@@ -47,19 +47,17 @@ const demoLooks = <Look>[
     items: [
       LookItem(number: 1, productId: 'demo-2', dx: 0.56, dy: 0.36),
       LookItem(number: 2, productId: 'demo-1', dx: 0.47, dy: 0.46),
-      LookItem(number: 3, productId: 'demo-5', dx: 0.40, dy: 0.60),
-      LookItem(number: 4, productId: 'demo-3', dx: 0.58, dy: 0.92),
+      LookItem(number: 3, productId: 'demo-3', dx: 0.58, dy: 0.92),
     ],
   ),
   Look(
     id: 'look-2',
-    title: 'Neon District',
+    title: 'Layered Neutrals',
     imageUrl:
-        'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
+        'https://images.unsplash.com/photo-1507680434567-5739c80be1ac?auto=format&fit=crop&w=1000&q=80',
     items: [
-      LookItem(number: 1, productId: 'demo-1', dx: 0.50, dy: 0.40),
-      LookItem(number: 2, productId: 'demo-6', dx: 0.63, dy: 0.55),
-      LookItem(number: 3, productId: 'demo-3', dx: 0.50, dy: 0.93),
+      LookItem(number: 1, productId: 'demo-5', dx: 0.19, dy: 0.41),
+      LookItem(number: 2, productId: 'demo-1', dx: 0.17, dy: 0.64),
     ],
   ),
 ];
@@ -72,6 +70,7 @@ List<({LookItem item, Product product})> resolveLook(
   final byId = {for (final p in products) p.id: p};
   return [
     for (final item in look.items)
-      if (byId[item.productId] != null) (item: item, product: byId[item.productId]!),
+      if (byId[item.productId] != null)
+        (item: item, product: byId[item.productId]!),
   ];
 }

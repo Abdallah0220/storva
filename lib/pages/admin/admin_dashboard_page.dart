@@ -37,9 +37,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          );
+          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
         }
         if (snapshot.hasError) {
           return StateMessage(
@@ -94,7 +92,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
     final cards = [
       (Icons.payments_outlined, 'Revenue', fmtMoney(revenue), AppTheme.success),
-      (Icons.receipt_long_outlined, 'Orders', '${orders.length}', AppTheme.accent),
+      (
+        Icons.receipt_long_outlined,
+        'Orders',
+        '${orders.length}',
+        AppTheme.accent,
+      ),
       (Icons.fiber_new_outlined, 'New', '$newCount', AppTheme.warning),
       (
         Icons.local_shipping_outlined,
@@ -109,15 +112,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         final cols = constraints.maxWidth > 800
             ? 4
             : constraints.maxWidth > 500
-                ? 2
-                : 2;
+            ? 2
+            : 2;
         return GridView.count(
           crossAxisCount: cols,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
-          childAspectRatio: 1.9,
+          childAspectRatio: constraints.maxWidth > 500 ? 1.9 : 1.55,
           children: cards
               .map(
                 (c) => Container(
