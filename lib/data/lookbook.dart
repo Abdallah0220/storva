@@ -56,8 +56,8 @@ const demoLooks = <Look>[
     imageUrl:
         'https://images.unsplash.com/photo-1507680434567-5739c80be1ac?auto=format&fit=crop&w=1000&q=80',
     items: [
-      LookItem(number: 1, productId: 'demo-5', dx: 0.19, dy: 0.41),
-      LookItem(number: 2, productId: 'demo-1', dx: 0.17, dy: 0.64),
+      LookItem(number: 1, productId: 'demo-5', dx: 0.48, dy: 0.37),
+      LookItem(number: 2, productId: 'demo-1', dx: 0.35, dy: 0.55),
     ],
   ),
 ];
