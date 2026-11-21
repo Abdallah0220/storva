@@ -1,51 +1,232 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/models.dart';
 import 'store_api.dart';
 
 /// In-memory backend used in demo mode (no Supabase configured).
 /// Lets buyers explore the full storefront and admin panel instantly.
+///
+/// Demo state persists in the browser's local storage (via
+/// shared_preferences), so an order placed on the storefront shows up
+/// in the admin dashboard on the same device, and admin edits survive
+/// reloads. Seeds are written on first run; real multi-device sync is
+/// what the Supabase backend is for.
 class DemoStoreApi implements StoreApi {
-  final List<Product> _products = List.of(_seedProducts);
-  final List<Order> _orders = List.of(_seedOrders);
-  final List<Coupon> _coupons = List.of(_seedCoupons);
-  final List<ShippingRate> _rates = List.of(_seedRates);
-  final Map<String, List<OrderItem>> _orderItems = {
-    'demo-order-1': [
-      const OrderItem(
-        productName: 'Aurora Wireless Headphones',
-        price: 129.99,
-        quantity: 1,
-      ),
-      const OrderItem(
-        productName: 'Lumen Desk Lamp',
-        price: 45.50,
-        quantity: 1,
-      ),
-    ],
-    'demo-order-2': [
-      const OrderItem(
-        productName: 'Pulse Smart Watch',
-        price: 199.00,
-        quantity: 1,
-      ),
-    ],
-  };
+  static const _kVersion = 'storva_demo_v1';
+  static const _kProducts = 'storva_demo_products';
+  static const _kOrders = 'storva_demo_orders';
+  static const _kOrderItems = 'storva_demo_order_items';
+  static const _kCoupons = 'storva_demo_coupons';
+  static const _kRates = 'storva_demo_rates';
+
+  static bool _hydrated = false;
+  static late List<Product> _products;
+  static late List<Order> _orders;
+  static late Map<String, List<OrderItem>> _orderItems;
+  static late List<Coupon> _coupons;
+  static late List<ShippingRate> _rates;
 
   Future<T> _latency<T>(T value) =>
       Future.delayed(const Duration(milliseconds: 350), () => value);
 
   String _id() => 'demo-${DateTime.now().microsecondsSinceEpoch}';
 
+  static Future<void> _hydrate() async {
+    if (_hydrated) return;
+    _hydrated = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getString(_kVersion) == null) {
+        _seedIntoMemory();
+        await _persistAll();
+        return;
+      }
+      _products = (jsonDecode(prefs.getString(_kProducts)!) as List)
+          .map((e) => _productFromJson(e as Map<String, dynamic>))
+          .toList();
+      _orders = (jsonDecode(prefs.getString(_kOrders)!) as List)
+          .map((e) => _orderFromJson(e as Map<String, dynamic>))
+          .toList();
+      _orderItems = (jsonDecode(prefs.getString(_kOrderItems)!) as Map).map(
+        (k, v) => MapEntry(
+          k as String,
+          (v as List)
+              .map((e) => _orderItemFromJson(e as Map<String, dynamic>))
+              .toList(),
+        ),
+      );
+      _coupons = (jsonDecode(prefs.getString(_kCoupons)!) as List)
+          .map((e) => _couponFromJson(e as Map<String, dynamic>))
+          .toList();
+      _rates = (jsonDecode(prefs.getString(_kRates)!) as List)
+          .map((e) => _rateFromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      // Corrupt or unavailable storage: fall back to seeds in memory.
+      _seedIntoMemory();
+    }
+  }
+
+  static void _seedIntoMemory() {
+    _products = List.of(_seedProducts);
+    _orders = List.of(_seedOrders);
+    _orderItems = {
+      for (final e in _seedOrderItems.entries) e.key: List.of(e.value),
+    };
+    _coupons = List.of(_seedCoupons);
+    _rates = List.of(_seedRates);
+  }
+
+  static Future<void> _persistAll() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kVersion, '1');
+      await prefs.setString(
+        _kProducts,
+        jsonEncode(_products.map(_productToJson).toList()),
+      );
+      await prefs.setString(
+        _kOrders,
+        jsonEncode(_orders.map(_orderToJson).toList()),
+      );
+      await prefs.setString(
+        _kOrderItems,
+        jsonEncode(
+          _orderItems.map(
+            (k, v) => MapEntry(k, v.map(_orderItemToJson).toList()),
+          ),
+        ),
+      );
+      await prefs.setString(
+        _kCoupons,
+        jsonEncode(_coupons.map(_couponToJson).toList()),
+      );
+      await prefs.setString(
+        _kRates,
+        jsonEncode(_rates.map(_rateToJson).toList()),
+      );
+    } catch (_) {
+      // Storage full or blocked: keep running in memory.
+    }
+  }
+
+  // ── JSON mappers ──────────────────────────────────────────────
+
+  static Map<String, dynamic> _productToJson(Product p) => {
+    'id': p.id,
+    'name': p.name,
+    'description': p.description,
+    'price': p.price,
+    'compareAtPrice': p.compareAtPrice,
+    'category': p.category,
+    'imageUrl': p.imageUrl,
+    'isActive': p.isActive,
+  };
+
+  static Product _productFromJson(Map<String, dynamic> j) => Product(
+    id: j['id'] as String,
+    name: j['name'] as String,
+    description: j['description'] as String?,
+    price: (j['price'] as num).toDouble(),
+    compareAtPrice: (j['compareAtPrice'] as num?)?.toDouble(),
+    category: j['category'] as String? ?? 'General',
+    imageUrl: j['imageUrl'] as String?,
+    isActive: j['isActive'] as bool? ?? true,
+  );
+
+  static Map<String, dynamic> _orderItemToJson(OrderItem i) => {
+    'productId': i.productId,
+    'productName': i.productName,
+    'price': i.price,
+    'quantity': i.quantity,
+  };
+
+  static OrderItem _orderItemFromJson(Map<String, dynamic> j) => OrderItem(
+    productId: j['productId'] as String?,
+    productName: j['productName'] as String,
+    price: (j['price'] as num).toDouble(),
+    quantity: (j['quantity'] as num).toInt(),
+  );
+
+  static Map<String, dynamic> _orderToJson(Order o) => {
+    'id': o.id,
+    'customerName': o.customerName,
+    'phone': o.phone,
+    'region': o.region,
+    'city': o.city,
+    'address': o.address,
+    'subtotal': o.subtotal,
+    'discountAmount': o.discountAmount,
+    'shippingCost': o.shippingCost,
+    'couponCode': o.couponCode,
+    'total': o.total,
+    'status': o.status,
+    'createdAt': o.createdAt.toIso8601String(),
+  };
+
+  static Order _orderFromJson(Map<String, dynamic> j) => Order(
+    id: j['id'] as String,
+    customerName: j['customerName'] as String,
+    phone: j['phone'] as String,
+    region: j['region'] as String,
+    city: j['city'] as String,
+    address: j['address'] as String,
+    subtotal: (j['subtotal'] as num).toDouble(),
+    discountAmount: (j['discountAmount'] as num).toDouble(),
+    shippingCost: (j['shippingCost'] as num).toDouble(),
+    couponCode: j['couponCode'] as String?,
+    total: (j['total'] as num).toDouble(),
+    status: j['status'] as String,
+    createdAt: DateTime.parse(j['createdAt'] as String),
+  );
+
+  static Map<String, dynamic> _couponToJson(Coupon c) => {
+    'id': c.id,
+    'code': c.code,
+    'discountPercent': c.discountPercent,
+    'isUsed': c.isUsed,
+    'createdAt': c.createdAt.toIso8601String(),
+    'usedAt': c.usedAt?.toIso8601String(),
+  };
+
+  static Coupon _couponFromJson(Map<String, dynamic> j) => Coupon(
+    id: j['id'] as String,
+    code: j['code'] as String,
+    discountPercent: (j['discountPercent'] as num).toDouble(),
+    isUsed: j['isUsed'] as bool? ?? false,
+    createdAt: DateTime.parse(j['createdAt'] as String),
+    usedAt: j['usedAt'] == null ? null : DateTime.parse(j['usedAt'] as String),
+  );
+
+  static Map<String, dynamic> _rateToJson(ShippingRate r) => {
+    'id': r.id,
+    'region': r.region,
+    'shippingCost': r.shippingCost,
+    'isActive': r.isActive,
+  };
+
+  static ShippingRate _rateFromJson(Map<String, dynamic> j) => ShippingRate(
+    id: j['id'] as String,
+    region: j['region'] as String,
+    shippingCost: (j['shippingCost'] as num).toDouble(),
+    isActive: j['isActive'] as bool? ?? true,
+  );
+
   // ── Storefront ────────────────────────────────────────────────
 
   @override
-  Future<List<Product>> fetchActiveProducts() =>
-      _latency(_products.where((p) => p.isActive).toList());
+  Future<List<Product>> fetchActiveProducts() async {
+    await _hydrate();
+    return _latency(_products.where((p) => p.isActive).toList());
+  }
 
   @override
   Future<Product?> fetchProductById(String id) async {
+    await _hydrate();
     for (final p in _products) {
       if (p.id == id) return p;
     }
@@ -53,11 +234,14 @@ class DemoStoreApi implements StoreApi {
   }
 
   @override
-  Future<List<ShippingRate>> fetchActiveShippingRates() =>
-      _latency(_rates.where((r) => r.isActive).toList());
+  Future<List<ShippingRate>> fetchActiveShippingRates() async {
+    await _hydrate();
+    return _latency(_rates.where((r) => r.isActive).toList());
+  }
 
   @override
   Future<double?> validateCoupon(String code) async {
+    await _hydrate();
     for (final c in _coupons) {
       if (c.code.toUpperCase() == code.trim().toUpperCase() && !c.isUsed) {
         return c.discountPercent;
@@ -76,6 +260,7 @@ class DemoStoreApi implements StoreApi {
     required List<OrderItem> items,
     String? couponCode,
   }) async {
+    await _hydrate();
     final subtotal = items.fold<double>(
       0,
       (sum, item) => sum + item.price * item.quantity,
@@ -114,16 +299,21 @@ class DemoStoreApi implements StoreApi {
       ),
     );
     _orderItems[id] = items;
+    await _persistAll();
     return id;
   }
 
   // ── Admin: products ───────────────────────────────────────────
 
   @override
-  Future<List<Product>> fetchAllProducts() => _latency(List.of(_products));
+  Future<List<Product>> fetchAllProducts() async {
+    await _hydrate();
+    return _latency(List.of(_products));
+  }
 
   @override
   Future<String> createProduct(Product product) async {
+    await _hydrate();
     final id = _id();
     _products.insert(
       0,
@@ -138,18 +328,23 @@ class DemoStoreApi implements StoreApi {
         isActive: product.isActive,
       ),
     );
+    await _persistAll();
     return id;
   }
 
   @override
   Future<void> updateProduct(Product product) async {
+    await _hydrate();
     final i = _products.indexWhere((p) => p.id == product.id);
     if (i != -1) _products[i] = product;
+    await _persistAll();
   }
 
   @override
   Future<void> deleteProduct(String id) async {
+    await _hydrate();
     _products.removeWhere((p) => p.id == id);
+    await _persistAll();
   }
 
   @override
@@ -161,14 +356,20 @@ class DemoStoreApi implements StoreApi {
   // ── Admin: orders ─────────────────────────────────────────────
 
   @override
-  Future<List<Order>> fetchAllOrders() => _latency(List.of(_orders));
+  Future<List<Order>> fetchAllOrders() async {
+    await _hydrate();
+    return _latency(List.of(_orders));
+  }
 
   @override
-  Future<List<OrderItem>> fetchOrderItems(String orderId) =>
-      _latency(_orderItems[orderId] ?? const []);
+  Future<List<OrderItem>> fetchOrderItems(String orderId) async {
+    await _hydrate();
+    return _latency(_orderItems[orderId] ?? const []);
+  }
 
   @override
   Future<void> updateOrderStatus(String orderId, String status) async {
+    await _hydrate();
     final i = _orders.indexWhere((o) => o.id == orderId);
     if (i == -1) return;
     final o = _orders[i];
@@ -187,15 +388,20 @@ class DemoStoreApi implements StoreApi {
       status: status,
       createdAt: o.createdAt,
     );
+    await _persistAll();
   }
 
   // ── Admin: coupons ────────────────────────────────────────────
 
   @override
-  Future<List<Coupon>> fetchAllCoupons() => _latency(List.of(_coupons));
+  Future<List<Coupon>> fetchAllCoupons() async {
+    await _hydrate();
+    return _latency(List.of(_coupons));
+  }
 
   @override
   Future<Coupon> createCoupon(double discountPercent) async {
+    await _hydrate();
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final rand = Random();
     final code = List.generate(
@@ -210,26 +416,33 @@ class DemoStoreApi implements StoreApi {
       createdAt: DateTime.now(),
     );
     _coupons.insert(0, coupon);
+    await _persistAll();
     return coupon;
   }
 
   @override
   Future<void> deleteCoupon(String id) async {
+    await _hydrate();
     _coupons.removeWhere((c) => c.id == id);
+    await _persistAll();
   }
 
   // ── Admin: shipping ───────────────────────────────────────────
 
   @override
-  Future<List<ShippingRate>> fetchAllShippingRates() =>
-      _latency(List.of(_rates));
+  Future<List<ShippingRate>> fetchAllShippingRates() async {
+    await _hydrate();
+    return _latency(List.of(_rates));
+  }
 
   @override
   Future<String> createShippingRate(String region, double cost) async {
+    await _hydrate();
     final id = _id();
     _rates.add(
       ShippingRate(id: id, region: region, shippingCost: cost, isActive: true),
     );
+    await _persistAll();
     return id;
   }
 
@@ -239,6 +452,7 @@ class DemoStoreApi implements StoreApi {
     required double shippingCost,
     required bool isActive,
   }) async {
+    await _hydrate();
     final i = _rates.indexWhere((r) => r.id == id);
     if (i == -1) return;
     _rates[i] = ShippingRate(
@@ -247,6 +461,7 @@ class DemoStoreApi implements StoreApi {
       shippingCost: shippingCost,
       isActive: isActive,
     );
+    await _persistAll();
   }
 }
 
@@ -330,6 +545,24 @@ final _seedProducts = <Product>[
     isActive: true,
   ),
 ];
+
+final _seedOrderItems = <String, List<OrderItem>>{
+  'demo-order-1': [
+    const OrderItem(
+      productName: 'Aurora Wireless Headphones',
+      price: 129.99,
+      quantity: 1,
+    ),
+    const OrderItem(productName: 'Lumen Desk Lamp', price: 45.50, quantity: 1),
+  ],
+  'demo-order-2': [
+    const OrderItem(
+      productName: 'Pulse Smart Watch',
+      price: 199.00,
+      quantity: 1,
+    ),
+  ],
+};
 
 final _seedOrders = [
   Order(
