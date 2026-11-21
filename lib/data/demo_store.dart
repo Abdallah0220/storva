@@ -248,58 +248,60 @@ class DemoStoreApi implements StoreApi {
 final _seedProducts = <Product>[
   Product(
     id: 'demo-1',
-    name: 'Aurora Wireless Headphones',
+    name: 'Essential White Tee',
     description:
-        'Over-ear wireless headphones with active noise cancellation, '
-        '40-hour battery life and a foldable travel design.',
-    price: 129.99,
-    compareAtPrice: 179.99,
-    category: 'Electronics',
-    imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
+        'Heavyweight 220 gsm cotton tee with a boxy fit and a ribbed collar. '
+        'Pre-shrunk and garment washed.',
+    price: 29.00,
+    category: 'Apparel',
+    imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
     id: 'demo-2',
-    name: 'Pulse Smart Watch',
+    name: 'Moto Leather Jacket',
     description:
-        'Fitness-focused smart watch with heart-rate tracking, GPS and '
-        'a bright always-on display.',
-    price: 199.00,
-    category: 'Electronics',
-    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
+        'Full-grain leather moto jacket with an asymmetric zip, quilted '
+        'shoulders and a satin lining.',
+    price: 189.00,
+    compareAtPrice: 240.00,
+    category: 'Apparel',
+    imageUrl: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
     id: 'demo-3',
-    name: 'Lumen Desk Lamp',
+    name: 'Retro Court Sneaker',
     description:
-        'Minimal desk lamp with three warmth levels, dimming and a USB-C '
-        'charging port in the base.',
-    price: 45.50,
-    compareAtPrice: 59.00,
-    category: 'Home',
-    imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80',
+        'Low-top court sneaker with a cup sole, suede overlays and '
+        'cushioned insole.',
+    price: 95.00,
+    compareAtPrice: 120.00,
+    category: 'Footwear',
+    imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
     id: 'demo-4',
-    name: 'Glow Skin Care Set',
+    name: 'Ochre Trench Coat',
     description:
-        'Three-step daily routine: gentle cleanser, vitamin C serum and '
-        'a lightweight moisturizer.',
-    price: 59.99,
-    category: 'Beauty',
-    imageUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80',
+        'Water-resistant oversized trench with a belted waist, horn buttons '
+        'and a storm flap.',
+    price: 149.00,
+    category: 'Apparel',
+    imageUrl: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
     id: 'demo-5',
-    name: 'Pro Yoga Mat',
+    name: 'Heritage Watch',
     description:
-        'Non-slip 6 mm yoga mat with alignment markers and a carry strap.',
-    price: 27.75,
-    category: 'Sports',
-    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
+        'Slim 38 mm dress watch with a brushed case, mineral glass and '
+        'a leather strap.',
+    price: 199.00,
+    compareAtPrice: 259.00,
+    category: 'Accessories',
+    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -310,7 +312,7 @@ final _seedProducts = <Product>[
         'and a hidden pocket.',
     price: 74.20,
     compareAtPrice: 89.00,
-    category: 'Fashion',
+    category: 'Accessories',
     imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),

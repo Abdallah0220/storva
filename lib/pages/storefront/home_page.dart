@@ -7,6 +7,8 @@ import '../../core/theme.dart';
 import '../../data/store_api.dart';
 import '../../models/models.dart';
 import '../../state/cart_provider.dart';
+import '../../widgets/lookbook_section.dart';
+import '../../widgets/noir_hero.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/store_widgets.dart';
 import 'cart_page.dart';
@@ -21,8 +23,23 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<List<Product>> _future;
+  final ScrollController _scroll = ScrollController();
   String _query = '';
   String? _category;
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _scrollToGrid() {
+    _scroll.animateTo(
+      620,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   @override
   void initState() {
@@ -89,6 +106,7 @@ class _HomePageState extends State<HomePage> {
                   return RefreshIndicator(
                     onRefresh: _refresh,
                     child: CustomScrollView(
+                      controller: _scroll,
                       physics: const AlwaysScrollableScrollPhysics(),
                       slivers: [
                         SliverToBoxAdapter(
@@ -97,6 +115,13 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 20),
+                                NoirHero(
+                                  imageUrl:
+                                      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+                                  onCta: _scrollToGrid,
+                                ),
+                                LookbookSection(products: products),
+                                const SizedBox(height: 8),
                                 Text(
                                   _category ?? 'All products',
                                   style: const TextStyle(
@@ -201,7 +226,7 @@ class _Header extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       height: 64,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.background,
         border: Border(bottom: BorderSide(color: AppTheme.border)),
       ),
       child: ResponsiveCenter(
@@ -296,10 +321,13 @@ class _CategoryChip extends StatelessWidget {
         label: Text(label),
         selected: selected,
         onSelected: (_) => onTap(),
-        selectedColor: AppTheme.accent.withValues(alpha: 0.14),
+        selectedColor: AppTheme.primary,
+        showCheckmark: false,
         labelStyle: TextStyle(
-          color: selected ? AppTheme.accent : AppTheme.textDark,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          color: selected ? Colors.white : AppTheme.textDark,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.6,
+          fontSize: 12,
         ),
       ),
     );
