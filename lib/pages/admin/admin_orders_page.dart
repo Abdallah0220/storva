@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config.dart';
 import '../../core/format.dart';
+import '../../core/phone.dart';
 import '../../core/responsive.dart';
 import '../../core/theme.dart';
 import '../../data/store_api.dart';
@@ -275,7 +276,7 @@ class _OrderCardState extends State<_OrderCard> {
                           onPressed: () {
                             launchUrl(
                               Uri.parse(
-                                'https://wa.me/${order.phone.replaceAll(RegExp(r'\D'), '')}',
+                                'https://wa.me/${normalizePhone(order.phone, defaultCountryCode: AppConfig.defaultCountryCode)}',
                               ),
                             );
                           },
