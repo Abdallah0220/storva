@@ -3,6 +3,10 @@
 --  Run this ONCE in your Supabase project: SQL Editor → New query →
 --  paste → Run. It creates every table, security policy, function
 --  and the storage bucket the app needs, plus sample data.
+--
+--  After running it you MUST register your admin login (see the
+--  last section of this file). Until you do, NO account can read
+--  orders or manage the store — including yours.
 -- ═══════════════════════════════════════════════════════════════
 
 -- ── Tables ─────────────────────────────────────────────────────
@@ -61,55 +65,99 @@ create table if not exists public.shipping_rates (
   is_active boolean not null default true
 );
 
+-- Admin allowlist. Only accounts listed here get admin access.
+-- Every policy and admin function below checks this table, so a
+-- random self-registered account can NEVER read customer orders,
+-- edit products or mint coupons — even if public sign-ups are
+-- left enabled in Authentication settings (disable them anyway;
+-- see the last section).
+create table if not exists public.admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  created_at timestamptz not null default now()
+);
+
+-- ── Admin check ────────────────────────────────────────────────
+-- security definer so it can read the allowlist for any caller;
+-- stable so the planner can cache it inside one query;
+-- search_path pinned so it cannot be hijacked by a malicious schema.
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.admins where user_id = auth.uid()
+  )
+$$;
+
+-- New functions are executable by PUBLIC by default in Postgres.
+-- Lock that down everywhere; each function gets explicit grants below.
+revoke all on function public.is_admin() from public, anon, authenticated;
+grant execute on function public.is_admin() to anon, authenticated;
+
 -- ── Row Level Security ─────────────────────────────────────────
--- anon = store visitors, authenticated = you (the admin login).
--- Admin users are created in Supabase → Authentication → Users.
+-- anon = store visitors. authenticated = any logged-in account,
+-- which is NOT enough for admin rights: policies additionally
+-- require public.is_admin(), i.e. membership of public.admins.
 
 alter table public.products enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.coupons enable row level security;
 alter table public.shipping_rates enable row level security;
+alter table public.admins enable row level security;
 
--- Products: visitors see only active products; admin manages all.
+-- Admins table: no direct API access at all. It is only read by the
+-- security-definer is_admin() check. Manage it from the SQL editor.
+create policy "no direct admin list reads"
+  on public.admins for select to authenticated
+  using (public.is_admin());
+
+-- Products: visitors see only active products; admins manage all.
 create policy "public read active products"
   on public.products for select to anon
   using (is_active = true);
 create policy "admin full access products"
   on public.products for all to authenticated
-  using (true) with check (true);
+  using (public.is_admin()) with check (public.is_admin());
 
--- Shipping rates: visitors read active ones; admin manages all.
+-- Shipping rates: visitors read active ones; admins manage all.
 create policy "public read active rates"
   on public.shipping_rates for select to anon
   using (is_active = true);
 create policy "admin full access rates"
   on public.shipping_rates for all to authenticated
-  using (true) with check (true);
+  using (public.is_admin()) with check (public.is_admin());
 
 -- Orders + items: visitors CANNOT read or write them directly.
 -- Orders are created only through the create_order_with_items()
 -- function below (it runs with elevated rights and recomputes
--- every price server-side). Admin reads/updates them.
+-- every price server-side). Only admins read/update them.
 create policy "admin read orders"
-  on public.orders for select to authenticated using (true);
+  on public.orders for select to authenticated
+  using (public.is_admin());
 create policy "admin update orders"
   on public.orders for update to authenticated
-  using (true) with check (true);
+  using (public.is_admin()) with check (public.is_admin());
 
 create policy "admin read order items"
-  on public.order_items for select to authenticated using (true);
+  on public.order_items for select to authenticated
+  using (public.is_admin());
 
 -- Coupons: never exposed to visitors. Validation and redemption
--- happen inside the functions below. Admin manages them.
+-- happen inside the functions below. Only admins manage them.
 create policy "admin full access coupons"
   on public.coupons for all to authenticated
-  using (true) with check (true);
+  using (public.is_admin()) with check (public.is_admin());
 
 -- ── Functions ──────────────────────────────────────────────────
 
--- Validate a coupon at checkout. Returns one row:
---   is_valid, discount_percent
+-- Validate a coupon at checkout (UX hint only — the authoritative
+-- redemption happens atomically inside create_order_with_items).
+-- Returns one row: is_valid, discount_percent
 create or replace function public.validate_coupon(p_code text)
 returns table (is_valid boolean, discount_percent numeric)
 language plpgsql security definer
@@ -175,17 +223,17 @@ begin
   where r.region = p_region and r.is_active = true;
   v_shipping := coalesce(v_shipping, 0);
 
-  -- Coupon: validate and mark used so it can't be reused.
+  -- Coupon: redeem atomically. The single UPDATE below both checks
+  -- and consumes the coupon, so two simultaneous orders can never
+  -- spend the same code (a read-then-write pair could race).
   if p_coupon_code is not null and trim(p_coupon_code) <> '' then
-    select c.discount_percent into v_percent
-    from public.coupons c
-    where upper(c.code) = upper(trim(p_coupon_code)) and c.is_used = false;
+    update public.coupons
+    set is_used = true, used_at = now()
+    where upper(code) = upper(trim(p_coupon_code)) and is_used = false
+    returning discount_percent into v_percent;
 
     if found then
       v_discount := round(v_subtotal * v_percent / 100, 2);
-      update public.coupons
-      set is_used = true, used_at = now()
-      where upper(coupons.code) = upper(trim(p_coupon_code));
     end if;
   end if;
 
@@ -214,6 +262,8 @@ end;
 $$;
 
 -- Generate a unique single-use coupon (called from the admin panel).
+-- Restricted to allowlisted admins; a plain logged-in account gets
+-- 'not authorized' even though it holds a valid session.
 create or replace function public.generate_coupon(p_discount_percent numeric)
 returns public.coupons
 language plpgsql security definer
@@ -223,6 +273,9 @@ declare
   v_code text;
   v_row public.coupons;
 begin
+  if not public.is_admin() then
+    raise exception 'not authorized';
+  end if;
   if p_discount_percent <= 0 or p_discount_percent > 100 then
     raise exception 'Discount must be between 1 and 100';
   end if;
@@ -241,7 +294,11 @@ begin
 end;
 $$;
 
--- Allow visitors to call the storefront functions.
+-- Explicit grants (Postgres grants EXECUTE to PUBLIC by default —
+-- revoke first, then allow exactly who should call each function).
+revoke all on function public.validate_coupon(text) from public, anon, authenticated;
+revoke all on function public.create_order_with_items(text, text, text, text, text, jsonb, text) from public, anon, authenticated;
+revoke all on function public.generate_coupon(numeric) from public, anon, authenticated;
 grant execute on function public.validate_coupon(text) to anon;
 grant execute on function public.create_order_with_items(text, text, text, text, text, jsonb, text) to anon;
 grant execute on function public.generate_coupon(numeric) to authenticated;
@@ -257,10 +314,10 @@ create policy "public read product images"
   using (bucket_id = 'product-images');
 create policy "admin upload product images"
   on storage.objects for insert to authenticated
-  with check (bucket_id = 'product-images');
+  with check (bucket_id = 'product-images' and public.is_admin());
 create policy "admin delete product images"
   on storage.objects for delete to authenticated
-  using (bucket_id = 'product-images');
+  using (bucket_id = 'product-images' and public.is_admin());
 
 -- ── Sample data (edit or delete freely) ────────────────────────
 
@@ -281,7 +338,31 @@ insert into public.coupons (code, discount_percent) values
   ('WELCOME10', 10)
 on conflict (code) do nothing;
 
--- ── Last step (manual): create your admin login ────────────────
--- Supabase dashboard → Authentication → Users → Add user →
--- email + password. That account signs in at your-store.com/#/admin
--- and gets full access through the policies above.
+-- ── Last steps (manual): register your admin login ─────────────
+-- 1. Supabase dashboard → Authentication → Users → Add user →
+--    email + password. This is your admin login; keep it private.
+-- 2. Register that account as an admin. Still in the SQL editor,
+--    run this with YOUR admin email:
+--
+--      insert into public.admins (user_id, email)
+--      select id, email from auth.users
+--      where email = 'you@yourstore.com';
+--
+--    That account (and only accounts in public.admins) can sign in
+--    at your-store.com/#/admin and manage the store.
+-- 3. Recommended defense in depth: Authentication → Sign In / Up
+--    (Providers → Email) → turn OFF "Allow new users to sign up".
+--    The allowlist already blocks self-registered accounts from all
+--    admin data, but with sign-ups off no stranger can even create
+--    an account on your project.
+--
+-- Honest limitations, by design:
+--  - The checkout RPC has no rate limiting or captcha, so scripted
+--    fake orders are possible. For a real launch consider Supabase
+--    Edge Function + captcha, or dashboard rate limits.
+--  - Admin login is email/password only; enable MFA in the Supabase
+--    dashboard (Authentication → Sign In / Up → MFA) if you want it.
+--  - Supabase free projects PAUSE after 1 week of inactivity and a
+--    free org runs at most 2 active projects (supabase.com/pricing).
+--    A paused project unpauses on demand, but the store looks
+--    offline until then — upgrade to Pro for an always-on store.

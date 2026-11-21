@@ -14,8 +14,8 @@ explore everything before connecting your own backend.
 | Storefront | Responsive product grid (mobile → desktop), category filter, live search, product details, discount badges |
 | Cart & checkout | Quantity editing, shipping regions, single-use coupon codes, order summary, order confirmation with WhatsApp follow-up button |
 | Admin panel (`#/admin`) | Dashboard (revenue, orders, status counts), product CRUD with image upload, order management with status flow and customer WhatsApp button, coupon generator, shipping region management |
-| Backend | Supabase Postgres + Auth + Storage. All prices and discounts recomputed **server-side** (tamper-proof checkout). Row Level Security on every table. |
-| Safety | Visitors can only see active products/rates and place orders through a secured function. Orders, coupons and admin actions require the admin login. |
+| Backend | Supabase Postgres + Auth + Storage. All prices and discounts recomputed **server-side** (tamper-proof checkout). Row Level Security on every table, with an explicit `public.admins` allowlist (a self-registered account gets no admin rights). |
+| Safety | Visitors can only see active products/rates and place orders through a secured function. Orders, coupons and admin actions require an allowlisted admin login. Checkout has no captcha/rate limiting yet; Supabase free projects pause after a week inactive. |
 
 ## Tech
 

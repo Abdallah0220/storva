@@ -42,7 +42,13 @@ flutter run -d chrome</code></pre>
 <div class="step"><strong>Step 1.</strong> Go to <a href="https://supabase.com">supabase.com</a> → <em>Start your project</em> → create a new project (any name, any region, save the database password it generates).</div>
 <div class="step"><strong>Step 2.</strong> In the left menu open <strong>SQL Editor</strong> → <em>New query</em> → open <code>supabase/schema.sql</code> from this package, copy its entire contents, paste, and press <strong>Run</strong>. This creates all tables, security rules, checkout functions, the image storage bucket and sample content.</div>
 <div class="step"><strong>Step 3.</strong> Open <strong>Authentication → Users → Add user</strong>. Enter your email and a strong password. <em>This is your admin login</em> — keep it private.</div>
-<div class="step"><strong>Step 4.</strong> Open <strong>Project Settings → API</strong>. Copy the <strong>Project URL</strong> and the <strong>anon public</strong> key.</div>
+<div class="step"><strong>Step 4.</strong> Register that account as an admin. Back in the <strong>SQL Editor</strong>, run this with your admin email:
+<pre><code>insert into public.admins (user_id, email)
+select id, email from auth.users
+where email = 'you@yourstore.com';</code></pre>
+Only accounts in <code>public.admins</code> can read orders or manage the store. A random self-registered account gets nothing.</div>
+<div class="step"><strong>Step 5.</strong> Recommended: open <strong>Authentication → Sign In / Up → Providers → Email</strong> and turn OFF <em>Allow new users to sign up</em>, so strangers cannot create accounts on your project at all.</div>
+<div class="step"><strong>Step 6.</strong> Open <strong>Project Settings → API</strong>. Copy the <strong>Project URL</strong> and the <strong>anon public</strong> key.</div>
 
 <h2>4. Connect the store to your backend (2 minutes)</h2>
 <p>Open <code>lib/core/config.dart</code> and fill in the marked fields:</p>
@@ -52,7 +58,8 @@ static const String whatsappNumber = '15550102299';  // digits only, or '' to hi
 static const String supabaseUrl = 'https://xyzcompany.supabase.co';
 static const String supabaseAnonKey = 'eyJhbGciOi...';</code></pre>
 <p>Run <code>flutter run -d chrome</code> again. The storefront now shows your database content, and <code>#/admin</code> asks for the admin login from Step 3.</p>
-<div class="step warn"><strong>Security note.</strong> The anon key is designed to be public — your data is protected by the Row Level Security policies in <code>schema.sql</code>. Never put the <em>service_role</em> key anywhere in this app.</div>
+<div class="step warn"><strong>Security note.</strong> The anon key is designed to be public — your data is protected by the Row Level Security policies and the <code>public.admins</code> allowlist in <code>schema.sql</code>. Never put the <em>service_role</em> key anywhere in this app.</div>
+<p>Known limits, honestly: checkout has no rate limiting or captcha (scripted fake orders are possible — add a captcha Edge Function if this becomes a problem); admin login is email/password unless you enable MFA under Authentication settings; Supabase free projects <strong>pause after 1 week of inactivity</strong> and free orgs run at most 2 active projects — the store looks offline while paused until someone unpauses it from the dashboard. Upgrade to Pro for an always-on store.</p>
 
 <h2>5. Add your products</h2>
 <ol>
