@@ -17,6 +17,11 @@ class AppConfig {
   /// "contact us" / order follow-up buttons. Leave empty to hide them.
   static const String whatsappNumber = '15550102299';
 
+  /// Default country dialling code for checkout phone numbers (digits
+  /// only, no '+'). Preselected in the phone field; customers can pick
+  /// another code or type their full international number with +.
+  static const String defaultCountryCode = '20';
+
   /// ── Supabase connection ─────────────────────────────────────
   /// 1. Create a free project at https://supabase.com
   /// 2. Run supabase/schema.sql in its SQL editor

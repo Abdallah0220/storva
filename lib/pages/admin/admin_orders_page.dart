@@ -274,7 +274,9 @@ class _OrderCardState extends State<_OrderCard> {
                         OutlinedButton.icon(
                           onPressed: () {
                             launchUrl(
-                              Uri.parse('https://wa.me/${order.phone}'),
+                              Uri.parse(
+                                'https://wa.me/${order.phone.replaceAll(RegExp(r'\D'), '')}',
+                              ),
                             );
                           },
                           icon: const Icon(Icons.chat_outlined, size: 16),

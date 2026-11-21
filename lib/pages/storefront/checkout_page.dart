@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/anim.dart';
 import '../../core/config.dart';
+import '../../core/phone.dart';
 import '../../core/format.dart';
 import '../../core/responsive.dart';
 import '../../core/theme.dart';
@@ -25,6 +26,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  String _countryCode = AppConfig.defaultCountryCode;
   final _cityController = TextEditingController();
   final _addressController = TextEditingController();
   final _couponController = TextEditingController();
@@ -76,7 +78,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     try {
       final orderId = await context.read<StoreApi>().createOrder(
         customerName: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: normalizePhone(_phoneController.text,
+            defaultCountryCode: _countryCode),
         region: _selectedRate!.region,
         city: _cityController.text.trim(),
         address: _addressController.text.trim(),
@@ -184,14 +187,45 @@ class _CheckoutPageState extends State<CheckoutPage> {
               validator: _required,
             ),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: 'Phone number',
-                prefixIcon: Icon(Icons.phone_outlined, size: 20),
-              ),
-              validator: _required,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 118,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _countryCode,
+                    decoration: const InputDecoration(
+                      labelText: 'Code',
+                      prefixIcon: Icon(Icons.public, size: 20),
+                    ),
+                    items: [
+                      for (final c in kCountryCodes)
+                        DropdownMenuItem(
+                          value: c.dialCode,
+                          child: Text('+${c.dialCode}'),
+                        ),
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _countryCode = v ?? _countryCode),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone number',
+                      hintText: '10xxxxxxxx',
+                      prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                    ),
+                    validator: (v) =>
+                        isValidPhone(v ?? '', defaultCountryCode: _countryCode)
+                            ? null
+                            : 'Enter a valid phone number',
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<ShippingRate>(
