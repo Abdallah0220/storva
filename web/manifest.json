@@ -1,11 +1,11 @@
 {
-    "name": "storva",
-    "short_name": "storva",
+    "name": "Storva",
+    "short_name": "Storva",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#112C38",
+    "theme_color": "#112C38",
+    "description": "Storva - curated fashion drop store",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
