@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storva — Setup & Customization Guide</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 820px; margin: 0 auto; padding: 32px 20px; color: #1e2235; line-height: 1.65; }
+  h1 { font-size: 28px; } h2 { margin-top: 40px; border-bottom: 1px solid #e6e8f0; padding-bottom: 8px; }
+  code { background: #f0f1f7; padding: 2px 6px; border-radius: 6px; font-size: 0.92em; }
+  pre { background: #1e2235; color: #e8eaf6; padding: 16px; border-radius: 10px; overflow-x: auto; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .step { background: #f7f8fc; border: 1px solid #e6e8f0; border-radius: 10px; padding: 14px 18px; margin: 12px 0; }
+  .warn { background: #fff8ec; border-color: #ffe1a8; }
+  table { border-collapse: collapse; width: 100%; } td, th { border: 1px solid #e6e8f0; padding: 8px 10px; text-align: left; }
+</style>
+</head>
+<body>
+
+<h1>Storva — Setup & Customization Guide</h1>
+<p>Thank you for purchasing Storva. This guide takes you from zero to a live store, no prior Flutter or Supabase experience needed. Estimated time: <strong>30–45 minutes</strong>.</p>
+
+<h2>1. What you need</h2>
+<table>
+  <tr><th>Tool</th><th>Why</th><th>Cost</th></tr>
+  <tr><td>Flutter SDK (stable)</td><td>Builds and runs the store</td><td>Free — flutter.dev</td></tr>
+  <tr><td>Supabase account</td><td>Database, admin login, image storage</td><td>Free tier is enough — supabase.com</td></tr>
+  <tr><td>Any static host (optional)</td><td>Puts your store online</td><td>Free — GitHub Pages, Netlify, Vercel…</td></tr>
+</table>
+
+<h2>2. Try it first (demo mode, 5 minutes)</h2>
+<p>The package runs immediately with sample data. No accounts, no setup:</p>
+<pre><code>cd storva
+flutter pub get
+flutter run -d chrome</code></pre>
+<ul>
+  <li><strong>Storefront</strong> opens automatically.</li>
+  <li><strong>Admin panel:</strong> add <code>#/admin</code> to the URL (e.g. <code>http://localhost:8080/#/admin</code>). In demo mode it opens without a password so you can explore.</li>
+</ul>
+
+<h2>3. Create your Supabase backend (15 minutes)</h2>
+<div class="step"><strong>Step 1.</strong> Go to <a href="https://supabase.com">supabase.com</a> → <em>Start your project</em> → create a new project (any name, any region, save the database password it generates).</div>
+<div class="step"><strong>Step 2.</strong> In the left menu open <strong>SQL Editor</strong> → <em>New query</em> → open <code>supabase/schema.sql</code> from this package, copy its entire contents, paste, and press <strong>Run</strong>. This creates all tables, security rules, checkout functions, the image storage bucket and sample content.</div>
+<div class="step"><strong>Step 3.</strong> Open <strong>Authentication → Users → Add user</strong>. Enter your email and a strong password. <em>This is your admin login</em> — keep it private.</div>
+<div class="step"><strong>Step 4.</strong> Open <strong>Project Settings → API</strong>. Copy the <strong>Project URL</strong> and the <strong>anon public</strong> key.</div>
+
+<h2>4. Connect the store to your backend (2 minutes)</h2>
+<p>Open <code>lib/core/config.dart</code> and fill in the marked fields:</p>
+<pre><code>static const String storeName = 'My Store';          // your brand
+static const String currencySymbol = '\$';            // e.g. '\$', '€', 'EGP '
+static const String whatsappNumber = '15550102299';  // digits only, or '' to hide
+static const String supabaseUrl = 'https://xyzcompany.supabase.co';
+static const String supabaseAnonKey = 'eyJhbGciOi...';</code></pre>
+<p>Run <code>flutter run -d chrome</code> again. The storefront now shows your database content, and <code>#/admin</code> asks for the admin login from Step 3.</p>
+<div class="step warn"><strong>Security note.</strong> The anon key is designed to be public — your data is protected by the Row Level Security policies in <code>schema.sql</code>. Never put the <em>service_role</em> key anywhere in this app.</div>
+
+<h2>5. Add your products</h2>
+<ol>
+  <li>Open <code>#/admin</code> and sign in.</li>
+  <li><strong>Products → Add product</strong>: name, description, price, optional old price (shows a sale badge), category, photo.</li>
+  <li><strong>Shipping</strong>: add the regions you deliver to and their prices. These appear in checkout.</li>
+  <li><strong>Coupons</strong>: generate single-use discount codes for promotions.</li>
+  <li>Delete the sample products whenever you're ready (trash icon).</li>
+</ol>
+
+<h2>6. Put your store online</h2>
+<p>Any static web host works. Two easy options:</p>
+<p><strong>Netlify / Vercel:</strong> run <code>flutter build web --release</code>, then drag the <code>build/web</code> folder onto their dashboard.</p>
+<p><strong>GitHub Pages:</strong> push this project to a repository; the included <code>.github/workflows/deploy.yml</code> builds and publishes automatically. Set the correct <code>--base-href</code> inside it (usually <code>/your-repo-name/</code>).</p>
+
+<h2>7. Rebranding</h2>
+<table>
+  <tr><th>What</th><th>Where</th></tr>
+  <tr><td>Store name, currency, WhatsApp number, Supabase keys</td><td><code>lib/core/config.dart</code></td></tr>
+  <tr><td>Colors, fonts, buttons, cards</td><td><code>lib/core/theme.dart</code></td></tr>
+  <tr><td>Demo products (offline preview)</td><td><code>lib/data/demo_store.dart</code></td></tr>
+  <tr><td>Logo / favicon</td><td><code>web/icons</code>, <code>web/favicon.png</code>, <code>web/index.html</code></td></tr>
+</table>
+
+<h2>8. How orders work</h2>
+<ol>
+  <li>Customer checks out (cash on delivery). Prices, discounts and shipping are recomputed by the database, so they can't be manipulated from the browser.</li>
+  <li>The order appears in <strong>Admin → Orders</strong> as <em>New</em>.</li>
+  <li>Call or WhatsApp the customer (button on the order) to confirm, then move the order through: <em>New → Confirmed → Shipped → Delivered</em> (or <em>Cancelled</em>).</li>
+</ol>
+
+<h2>9. Troubleshooting</h2>
+<table>
+  <tr><th>Symptom</th><th>Fix</th></tr>
+  <tr><td>Storefront is empty after connecting Supabase</td><td>Products exist but <em>is_active</em> off? Or <code>schema.sql</code> wasn't run. Check SQL Editor history.</td></tr>
+  <tr><td>"Wrong email or password" on admin login</td><td>Create the user under Authentication → Users; confirm the email if confirmations are enabled (Authentication → Settings).</td></tr>
+  <tr><td>Checkout error when placing an order</td><td>Make sure the region selected exists in Shipping rates and is active.</td></tr>
+  <tr><td>Images don't upload</td><td>Re-run the storage section of <code>schema.sql</code>; the <code>product-images</code> bucket must exist and be public.</td></tr>
+  <tr><td>Blank page after deploying</td><td>The <code>--base-href</code> is wrong. It must match the URL path (e.g. <code>/repo-name/</code> on GitHub Pages, <code>/</code> on Netlify).</td></tr>
+</table>
+
+<h2>10. Support</h2>
+<p>Reply through the marketplace you purchased from and include: what you tried, the exact error text, and a screenshot. Typical response time is within 48 hours. Support covers installation and bug fixes; customization work (new features, design changes) is not included.</p>
+
+</body>
+</html>
