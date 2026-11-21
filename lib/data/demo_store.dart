@@ -255,7 +255,7 @@ final _seedProducts = <Product>[
     price: 129.99,
     compareAtPrice: 179.99,
     category: 'Electronics',
-    imageUrl: 'asset:assets/demo/headphones.png',
+    imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -266,7 +266,7 @@ final _seedProducts = <Product>[
         'a bright always-on display.',
     price: 199.00,
     category: 'Electronics',
-    imageUrl: 'asset:assets/demo/watch.png',
+    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -278,7 +278,7 @@ final _seedProducts = <Product>[
     price: 45.50,
     compareAtPrice: 59.00,
     category: 'Home',
-    imageUrl: 'asset:assets/demo/lamp.png',
+    imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -289,7 +289,7 @@ final _seedProducts = <Product>[
         'a lightweight moisturizer.',
     price: 59.99,
     category: 'Beauty',
-    imageUrl: 'asset:assets/demo/skincare.png',
+    imageUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -299,7 +299,7 @@ final _seedProducts = <Product>[
         'Non-slip 6 mm yoga mat with alignment markers and a carry strap.',
     price: 27.75,
     category: 'Sports',
-    imageUrl: 'asset:assets/demo/yogamat.png',
+    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
   Product(
@@ -311,7 +311,7 @@ final _seedProducts = <Product>[
     price: 74.20,
     compareAtPrice: 89.00,
     category: 'Fashion',
-    imageUrl: 'asset:assets/demo/backpack.png',
+    imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80',
     isActive: true,
   ),
 ];

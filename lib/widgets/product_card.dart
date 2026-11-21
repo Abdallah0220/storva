@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector3;
 import 'package:provider/provider.dart';
 
 import '../core/format.dart';
@@ -8,18 +9,44 @@ import '../pages/storefront/product_details_page.dart';
 import '../state/cart_provider.dart';
 import 'store_widgets.dart';
 
-/// Storefront product card.
-class ProductCard extends StatelessWidget {
+/// Storefront product card with a subtle hover lift on web/desktop.
+class ProductCard extends StatefulWidget {
   final Product product;
 
   const ProductCard({super.key, required this.product});
 
   @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  bool _hovered = false;
+
+  Product get product => widget.product;
+
+  @override
   Widget build(BuildContext context) {
     final discount = product.discountPercent;
 
-    return Container(
-      decoration: AppTheme.card,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        transform: _hovered
+            ? (Matrix4.identity()..translateByVector3(Vector3(0, -4, 0)))
+            : Matrix4.identity(),
+        decoration: AppTheme.card.copyWith(
+          boxShadow: _hovered
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.10),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : AppTheme.card.boxShadow,
+        ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
@@ -143,6 +170,7 @@ class ProductCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
