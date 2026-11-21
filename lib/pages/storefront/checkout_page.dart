@@ -195,7 +195,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _countryCode,
                     decoration: const InputDecoration(
-                      labelText: 'Code',
                       prefixIcon: Icon(Icons.public, size: 20),
                     ),
                     items: [
