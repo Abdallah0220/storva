@@ -41,24 +41,25 @@ class Look {
 const demoLooks = <Look>[
   Look(
     id: 'look-1',
-    title: 'Off Grid',
+    title: 'City Tailored',
     imageUrl:
-        'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1000&q=80',
+        'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=1000&q=80',
     items: [
-      LookItem(number: 1, productId: 'demo-4', dx: 0.50, dy: 0.32),
-      LookItem(number: 2, productId: 'demo-6', dx: 0.72, dy: 0.52),
-      LookItem(number: 3, productId: 'demo-3', dx: 0.50, dy: 0.88),
+      LookItem(number: 1, productId: 'demo-2', dx: 0.56, dy: 0.36),
+      LookItem(number: 2, productId: 'demo-1', dx: 0.47, dy: 0.46),
+      LookItem(number: 3, productId: 'demo-5', dx: 0.40, dy: 0.60),
+      LookItem(number: 4, productId: 'demo-3', dx: 0.58, dy: 0.92),
     ],
   ),
   Look(
     id: 'look-2',
-    title: 'City Moto',
+    title: 'Neon District',
     imageUrl:
-        'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=1000&q=80',
+        'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
     items: [
-      LookItem(number: 1, productId: 'demo-2', dx: 0.50, dy: 0.35),
-      LookItem(number: 2, productId: 'demo-1', dx: 0.42, dy: 0.55),
-      LookItem(number: 3, productId: 'demo-5', dx: 0.62, dy: 0.62),
+      LookItem(number: 1, productId: 'demo-1', dx: 0.50, dy: 0.40),
+      LookItem(number: 2, productId: 'demo-6', dx: 0.63, dy: 0.55),
+      LookItem(number: 3, productId: 'demo-3', dx: 0.50, dy: 0.93),
     ],
   ),
 ];
