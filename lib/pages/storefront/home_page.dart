@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/anim.dart';
 import '../../core/config.dart';
 import '../../core/responsive.dart';
 import '../../core/theme.dart';
@@ -115,48 +116,65 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 20),
-                                NoirHero(
-                                  imageUrl:
-                                      'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
-                                  onCta: _scrollToGrid,
+                                Reveal(
+                                  child: NoirHero(
+                                    imageUrl:
+                                        'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
+                                    onCta: _scrollToGrid,
+                                  ),
                                 ),
-                                LookbookSection(products: products),
+                                Reveal(
+                                  delay: const Duration(milliseconds: 120),
+                                  child: LookbookSection(products: products),
+                                ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  _category ?? 'All products',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${filtered.length} items',
-                                  style: const TextStyle(
-                                    color: AppTheme.textMuted,
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                SizedBox(
-                                  height: 40,
-                                  child: ListView(
-                                    scrollDirection: Axis.horizontal,
+                                Reveal(
+                                  delay: const Duration(milliseconds: 180),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      _CategoryChip(
-                                        label: 'All',
-                                        selected: _category == null,
-                                        onTap: () =>
-                                            setState(() => _category = null),
+                                      Text(
+                                        _category ?? 'All products',
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
-                                      ...categories.map(
-                                        (c) => _CategoryChip(
-                                          label: c,
-                                          selected: _category == c,
-                                          onTap: () =>
-                                              setState(() => _category = c),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${filtered.length} items',
+                                        style: const TextStyle(
+                                          color: AppTheme.textMuted,
                                         ),
                                       ),
                                     ],
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Reveal(
+                                  delay: const Duration(milliseconds: 240),
+                                  child: SizedBox(
+                                    height: 40,
+                                    child: ListView(
+                                      scrollDirection: Axis.horizontal,
+                                      children: [
+                                        _CategoryChip(
+                                          label: 'All',
+                                          selected: _category == null,
+                                          onTap: () =>
+                                              setState(() => _category = null),
+                                        ),
+                                        ...categories.map(
+                                          (c) => _CategoryChip(
+                                            label: c,
+                                            selected: _category == c,
+                                            onTap: () =>
+                                                setState(() => _category = c),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -174,30 +192,47 @@ class _HomePageState extends State<HomePage> {
                             ),
                           )
                         else
-                          SliverToBoxAdapter(
-                            child: ResponsiveCenter(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return GridView.builder(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: gridColumns(
-                                            constraints.maxWidth,
-                                          ),
-                                          crossAxisSpacing: 16,
-                                          mainAxisSpacing: 16,
-                                          childAspectRatio: 0.66,
-                                        ),
-                                    itemCount: filtered.length,
-                                    itemBuilder: (context, index) =>
-                                        ProductCard(product: filtered[index]),
-                                  );
-                                },
-                              ),
-                            ),
+                          // Lazy sliver grid: cards build as they near the
+                          // viewport, so each one plays its Reveal entrance
+                          // as the user scrolls to it.
+                          SliverLayoutBuilder(
+                            builder: (context, constraints) {
+                              final viewport = constraints.crossAxisExtent;
+                              const maxWidth = 1100.0;
+                              final contentWidth =
+                                  (viewport < maxWidth ? viewport : maxWidth) -
+                                  40;
+                              final cols = gridColumns(contentWidth);
+                              final horizontal = viewport > maxWidth
+                                  ? (viewport - maxWidth) / 2 + 20
+                                  : 20.0;
+                              return SliverPadding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontal,
+                                ),
+                                sliver: SliverGrid(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) => Reveal(
+                                      delay: Duration(
+                                        milliseconds: 70 * (index % cols),
+                                      ),
+                                      offsetY: 26,
+                                      child: ProductCard(
+                                        product: filtered[index],
+                                      ),
+                                    ),
+                                    childCount: filtered.length,
+                                  ),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: cols,
+                                        crossAxisSpacing: 16,
+                                        mainAxisSpacing: 16,
+                                        childAspectRatio: 0.66,
+                                      ),
+                                ),
+                              );
+                            },
                           ),
                         const SliverToBoxAdapter(child: _Footer()),
                       ],
@@ -264,33 +299,45 @@ class _Header extends StatelessWidget implements PreferredSizeWidget {
                     IconButton(
                       icon: const Icon(Icons.shopping_bag_outlined),
                       onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const CartPage()),
-                        );
+                        Navigator.of(
+                          context,
+                        ).push(fadeSlideRoute(const CartPage()));
                       },
                     ),
                     if (cart.itemCount > 0)
                       Positioned(
                         right: 4,
                         top: 4,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: AppTheme.accent,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 18,
-                            minHeight: 18,
-                          ),
-                          child: Text(
-                            '${cart.itemCount}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 240),
+                          transitionBuilder: (child, animation) =>
+                              ScaleTransition(
+                                scale: CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutBack,
+                                ),
+                                child: child,
+                              ),
+                          child: Container(
+                            key: ValueKey(cart.itemCount),
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppTheme.accent,
+                              shape: BoxShape.circle,
                             ),
-                            textAlign: TextAlign.center,
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Text(
+                              '${cart.itemCount}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                       ),

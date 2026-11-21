@@ -15,8 +15,9 @@ class OrderSuccessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shortId =
-        orderId.length > 8 ? orderId.substring(0, 8).toUpperCase() : orderId;
+    final shortId = orderId.length > 8
+        ? orderId.substring(0, 8).toUpperCase()
+        : orderId;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -78,9 +79,7 @@ class OrderSuccessPage extends StatelessWidget {
                         children: [
                           Text(
                             'Order #$shortId',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(width: 8),
                           const Icon(

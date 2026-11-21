@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/anim.dart';
 import '../../core/format.dart';
 import '../../core/responsive.dart';
 import '../../core/theme.dart';
@@ -49,8 +50,7 @@ class CartPage extends StatelessWidget {
                       child: Column(
                         children: [
                           Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
                                 'Subtotal',
@@ -77,17 +77,17 @@ class CartPage extends StatelessWidget {
                           SizedBox(
                             width: double.infinity,
                             height: 50,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const CheckoutPage(),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                'Checkout',
-                                style: TextStyle(fontSize: 16),
+                            child: TapScale(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(
+                                    context,
+                                  ).push(fadeSlideRoute(const CheckoutPage()));
+                                },
+                                child: const Text(
+                                  'Checkout',
+                                  style: TextStyle(fontSize: 16),
+                                ),
                               ),
                             ),
                           ),
@@ -150,10 +150,7 @@ class _CartTile extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _qtyBtn(
-                      Icons.remove,
-                      () => cart.decrease(product.id),
-                    ),
+                    _qtyBtn(Icons.remove, () => cart.decrease(product.id)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(

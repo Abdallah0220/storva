@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/anim.dart';
 import '../../core/format.dart';
 import '../../core/responsive.dart';
 import '../../core/theme.dart';
@@ -73,16 +74,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     try {
       final orderId = await context.read<StoreApi>().createOrder(
-            customerName: _nameController.text.trim(),
-            phone: _phoneController.text.trim(),
-            region: _selectedRate!.region,
-            city: _cityController.text.trim(),
-            address: _addressController.text.trim(),
-            items: cart.toOrderItems(),
-            couponCode: _couponPercent != null
-                ? _couponController.text.trim()
-                : null,
-          );
+        customerName: _nameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        region: _selectedRate!.region,
+        city: _cityController.text.trim(),
+        address: _addressController.text.trim(),
+        items: cart.toOrderItems(),
+        couponCode: _couponPercent != null
+            ? _couponController.text.trim()
+            : null,
+      );
 
       if (!mounted) return;
       cart.clear();
@@ -243,8 +244,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     decoration: InputDecoration(
                       hintText: 'Enter coupon code',
                       errorText: _couponError,
-                      prefixIcon:
-                          const Icon(Icons.confirmation_num_outlined, size: 20),
+                      prefixIcon: const Icon(
+                        Icons.confirmation_num_outlined,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
@@ -277,8 +280,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget _buildSummary(CartProvider cart) {
     final subtotal = cart.subtotal;
     final shipping = _selectedRate?.shippingCost ?? 0;
-    final discount =
-        _couponPercent != null ? subtotal * _couponPercent! / 100 : 0.0;
+    final discount = _couponPercent != null
+        ? subtotal * _couponPercent! / 100
+        : 0.0;
     final total = subtotal - discount + shipping;
 
     return Container(
@@ -320,31 +324,27 @@ class _CheckoutPageState extends State<CheckoutPage> {
             _row('Discount', '-${fmtMoney(discount)}', color: AppTheme.success),
           ],
           const SizedBox(height: 6),
-          _row(
-            'Shipping',
-            _selectedRate == null ? '-' : fmtMoney(shipping),
-          ),
+          _row('Shipping', _selectedRate == null ? '-' : fmtMoney(shipping)),
           const Divider(height: 24),
           _row('Total', fmtMoney(total), bold: true),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
             height: 50,
-            child: ElevatedButton(
-              onPressed: _placingOrder ? null : _placeOrder,
-              child: _placingOrder
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Place order',
-                      style: TextStyle(fontSize: 16),
-                    ),
+            child: TapScale(
+              child: ElevatedButton(
+                onPressed: _placingOrder ? null : _placeOrder,
+                child: _placingOrder
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Place order', style: TextStyle(fontSize: 16)),
+              ),
             ),
           ),
           const SizedBox(height: 8),

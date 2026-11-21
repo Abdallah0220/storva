@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/anim.dart';
 import '../core/format.dart';
 import '../core/theme.dart';
 import '../data/lookbook.dart';
@@ -94,18 +95,31 @@ class _LookbookSectionState extends State<LookbookSection> {
           LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth > 720;
-              final image = _LookImage(
-                look: look,
-                resolved: resolved,
-                selected: _selected,
-                onSelect: (n) =>
-                    setState(() => _selected = _selected == n ? null : n),
+              // Crossfade both halves when the user switches looks.
+              final image = AnimatedSwitcher(
+                duration: const Duration(milliseconds: 380),
+                child: KeyedSubtree(
+                  key: ValueKey('look-image-${look.imageUrl}'),
+                  child: _LookImage(
+                    look: look,
+                    resolved: resolved,
+                    selected: _selected,
+                    onSelect: (n) =>
+                        setState(() => _selected = _selected == n ? null : n),
+                  ),
+                ),
               );
-              final list = _LookList(
-                resolved: resolved,
-                selected: _selected,
-                onSelect: (n) =>
-                    setState(() => _selected = _selected == n ? null : n),
+              final list = AnimatedSwitcher(
+                duration: const Duration(milliseconds: 380),
+                child: KeyedSubtree(
+                  key: ValueKey('look-list-$_lookIndex'),
+                  child: _LookList(
+                    resolved: resolved,
+                    selected: _selected,
+                    onSelect: (n) =>
+                        setState(() => _selected = _selected == n ? null : n),
+                  ),
+                ),
               );
               if (wide) {
                 return Row(
@@ -129,21 +143,29 @@ class _LookbookSectionState extends State<LookbookSection> {
               alignment: WrapAlignment.spaceBetween,
               runSpacing: 8,
               children: [
-                Text(
-                  bagCount == 0
-                      ? 'Nothing from this look in your bag yet'
-                      : '$bagCount of ${resolved.length} pieces in your bag',
-                  style: const TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 13,
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: Text(
+                    bagCount == 0
+                        ? 'Nothing from this look in your bag yet'
+                        : '$bagCount of ${resolved.length} pieces in your bag',
+                    key: ValueKey(bagCount),
+                    style: const TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-                Text(
-                  'TOTAL  ${fmtMoney(inBag)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    letterSpacing: 0.6,
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: Text(
+                    'TOTAL  ${fmtMoney(inBag)}',
+                    key: ValueKey(inBag),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      letterSpacing: 0.6,
+                    ),
                   ),
                 ),
               ],
@@ -214,31 +236,40 @@ class _Hotspot extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: DashedCircle(
-        size: 34,
-        color: Colors.white,
-        strokeWidth: 1.1,
-        child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            width: active ? 26 : 22,
-            height: active ? 26 : 22,
-            decoration: BoxDecoration(
-              color: active ? Colors.white : AppTheme.primary,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 1.5),
-            ),
-            child: Center(
-              child: Text(
-                number.toString().padLeft(2, '0'),
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: active ? AppTheme.primary : Colors.white,
+      child: TapScale(
+        pressedScale: 0.85,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (!active) const PulseRing(size: 34),
+            DashedCircle(
+              size: 34,
+              color: Colors.white,
+              strokeWidth: 1.1,
+              child: Center(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  width: active ? 26 : 22,
+                  height: active ? 26 : 22,
+                  decoration: BoxDecoration(
+                    color: active ? Colors.white : AppTheme.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: Center(
+                    child: Text(
+                      number.toString().padLeft(2, '0'),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: active ? AppTheme.primary : Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -377,8 +408,10 @@ class _BagButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Widget pill;
     if (inBag) {
-      return Container(
+      pill = Container(
+        key: const ValueKey('in-bag'),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: AppTheme.primary,
@@ -394,21 +427,34 @@ class _BagButton extends StatelessWidget {
           ),
         ),
       );
-    }
-    return OutlinedButton(
-      onPressed: onAdd,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: const Text(
-        'ADD',
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.2,
+    } else {
+      pill = OutlinedButton(
+        key: const ValueKey('add'),
+        onPressed: onAdd,
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
+        child: const Text(
+          'ADD',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
+          ),
+        ),
+      );
+    }
+    return TapScale(
+      pressedScale: 0.9,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 240),
+        transitionBuilder: (child, animation) => ScaleTransition(
+          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          child: FadeTransition(opacity: animation, child: child),
+        ),
+        child: pill,
       ),
     );
   }

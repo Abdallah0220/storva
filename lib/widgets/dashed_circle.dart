@@ -56,11 +56,7 @@ class _DashedCirclePainter extends CustomPainter {
     final radius = (size.shortestSide - strokeWidth) / 2;
 
     if (filled) {
-      canvas.drawCircle(
-        center,
-        radius,
-        Paint()..color = AppTheme.surface,
-      );
+      canvas.drawCircle(center, radius, Paint()..color = AppTheme.surface);
     }
 
     final paint = Paint()
